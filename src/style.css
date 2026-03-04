@@ -52,10 +52,11 @@ header {
 }
 
 .brand-title {
-  font-size: 1.8rem;
-  font-weight: 800;
+  font-size: 4.5rem;
+  font-weight: 950;
   margin: 0;
   flex: 1;
+  line-height: 1;
   background: linear-gradient(45deg, #646cff, #ff64f2);
   background-clip: text;
   -webkit-background-clip: text;

@@ -30,11 +30,13 @@ export function exportToPDF(quantity, cardsPerPage, paperSize) {
   const availableHeight = paperSize.height - marginY * 2;
 
   // Spacing between cards
-  const gutter = 10;
+  const gutterX = 10;
+  const gutterY = 20; // Aumentado para facilitar el corte con guillotina
 
-  const cardWidth = (availableWidth - gutter * (layout.cols - 1)) / layout.cols;
+  const cardWidth =
+    (availableWidth - gutterX * (layout.cols - 1)) / layout.cols;
   const cardHeight =
-    (availableHeight - gutter * (layout.rows - 1)) / layout.rows;
+    (availableHeight - gutterY * (layout.rows - 1)) / layout.rows;
 
   let currentCard = 0;
 
@@ -45,10 +47,18 @@ export function exportToPDF(quantity, cardsPerPage, paperSize) {
       for (let c = 0; c < layout.cols; c++) {
         if (currentCard >= cards.length) break;
 
-        const x = marginX + c * (cardWidth + gutter);
-        const y = marginY + r * (cardHeight + gutter);
+        const x = marginX + c * (cardWidth + gutterX);
+        const y = marginY + r * (cardHeight + gutterY);
 
-        drawSingleCard(doc, cards[currentCard], x, y, cardWidth, cardHeight);
+        drawSingleCard(
+          doc,
+          cards[currentCard],
+          x,
+          y,
+          cardWidth,
+          cardHeight,
+          currentCard + 1,
+        );
         currentCard++;
       }
     }
@@ -57,7 +67,7 @@ export function exportToPDF(quantity, cardsPerPage, paperSize) {
   doc.save(`bingo_${paperSize.id.toLowerCase()}.pdf`);
 }
 
-function drawSingleCard(doc, card, x, y, width, height) {
+function drawSingleCard(doc, card, x, y, width, height, cardNumber) {
   const headerHeight = height * 0.18; // Space for images & text
   const gridHeight = height - headerHeight;
   const cols = 5;
@@ -68,10 +78,11 @@ function drawSingleCard(doc, card, x, y, width, height) {
   doc.setLineWidth(0.3);
   doc.rect(x, y, width, height);
 
-  // ID
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "normal");
-  doc.text(`ID: ${card.id}`, x, y - 2);
+  // Card Number
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  const formattedNumber = String(cardNumber).padStart(3, "0");
+  doc.text(`Número de cartón: ${formattedNumber}`, x, y - 3);
 
   // --- HEADER SECTION ---
   const imageSize = headerHeight * 0.7;
@@ -108,13 +119,13 @@ function drawSingleCard(doc, card, x, y, width, height) {
 
   // Center Text: BINGO SOLIDARIO
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(headerHeight * 0.3);
+  doc.setFontSize(headerHeight * 0.85); // Casi el doble de 0.45, muy grande e impactante
   const title = "BINGO SOLIDARIO";
   const titleW = doc.getTextWidth(title);
   doc.text(
     title,
     x + (width - titleW) / 2,
-    y + headerHeight / 2 + headerHeight * 0.1,
+    y + headerHeight / 2 + headerHeight * 0.22, // Reajuste de centrado para fuente gigante
   );
 
   // --- GRID SECTION ---
@@ -122,7 +133,7 @@ function drawSingleCard(doc, card, x, y, width, height) {
 
   // Header BINGO Letters
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(cellWidth * 0.6);
+  doc.setFontSize(cellWidth * 0.85); // Aumentado significativamente
 
   for (let c = 0; c < 5; c++) {
     const cx = x + c * cellWidth;
@@ -134,12 +145,12 @@ function drawSingleCard(doc, card, x, y, width, height) {
     doc.text(
       letter,
       cx + (cellWidth - textW) / 2,
-      gridStartY + cellHeight * 0.7,
+      gridStartY + cellHeight * 0.82, // Ajuste para centrar letra gigante
     );
   }
 
   // Numbers Grid
-  doc.setFontSize(cellWidth * 0.5);
+  doc.setFontSize(cellWidth * 0.85); // Aumentado significativamente
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
       const cx = x + c * cellWidth;
@@ -148,15 +159,15 @@ function drawSingleCard(doc, card, x, y, width, height) {
 
       const cell = card.grid[r][c];
       if (cell.isFree) {
-        doc.setFontSize(cellWidth * 0.2);
+        doc.setFontSize(cellWidth * 0.45); // Aumentado significativamente
         const text = "FREE";
         const textW = doc.getTextWidth(text);
-        doc.text(text, cx + (cellWidth - textW) / 2, cy + cellHeight * 0.65);
-        doc.setFontSize(cellWidth * 0.5);
+        doc.text(text, cx + (cellWidth - textW) / 2, cy + cellHeight * 0.7);
+        doc.setFontSize(cellWidth * 0.85);
       } else {
         const text = String(cell.value);
         const textW = doc.getTextWidth(text);
-        doc.text(text, cx + (cellWidth - textW) / 2, cy + cellHeight * 0.7);
+        doc.text(text, cx + (cellWidth - textW) / 2, cy + cellHeight * 0.82); // Ajuste para centrar número gigante
       }
     }
   }

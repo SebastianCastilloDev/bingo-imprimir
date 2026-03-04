@@ -58,10 +58,12 @@ export function exportToPDF(quantity, cardsPerPage, paperSize) {
 }
 
 function drawSingleCard(doc, card, x, y, width, height) {
+  const headerHeight = height * 0.18; // Space for images & text
+  const gridHeight = height - headerHeight;
   const cols = 5;
-  const rows = 6; // 1 header + 5 numbers
+  const rows = 6; // 1 bingo header + 5 numbers
   const cellWidth = width / cols;
-  const cellHeight = height / rows;
+  const cellHeight = gridHeight / rows;
 
   doc.setLineWidth(0.3);
   doc.rect(x, y, width, height);
@@ -71,35 +73,86 @@ function drawSingleCard(doc, card, x, y, width, height) {
   doc.setFont("helvetica", "normal");
   doc.text(`ID: ${card.id}`, x, y - 2);
 
-  // Header BINGO
+  // --- HEADER SECTION ---
+  const imageSize = headerHeight * 0.7;
+  const paddingY = (headerHeight - imageSize) / 2;
+  const paddingX = 5;
+
+  // Left Image: logo-silvia.jpeg
+  try {
+    doc.addImage(
+      "/logo-silvia.jpeg",
+      "JPEG",
+      x + paddingX,
+      y + paddingY,
+      imageSize,
+      imageSize,
+    );
+  } catch (e) {
+    console.error("Could not load logo-silvia.jpeg", e);
+  }
+
+  // Right Image: qr.png
+  try {
+    doc.addImage(
+      "/qr.png",
+      "PNG",
+      x + width - imageSize - paddingX,
+      y + paddingY,
+      imageSize,
+      imageSize,
+    );
+  } catch (e) {
+    console.error("Could not load qr.png", e);
+  }
+
+  // Center Text: BINGO SOLIDARIO
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(width / 6); // Responsive font size
+  doc.setFontSize(headerHeight * 0.3);
+  const title = "BINGO SOLIDARIO";
+  const titleW = doc.getTextWidth(title);
+  doc.text(
+    title,
+    x + (width - titleW) / 2,
+    y + headerHeight / 2 + headerHeight * 0.1,
+  );
+
+  // --- GRID SECTION ---
+  const gridStartY = y + headerHeight;
+
+  // Header BINGO Letters
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(cellWidth * 0.6);
 
   for (let c = 0; c < 5; c++) {
     const cx = x + c * cellWidth;
     doc.setFillColor(230, 230, 230);
-    doc.rect(cx, y, cellWidth, cellHeight, "DF");
+    doc.rect(cx, gridStartY, cellWidth, cellHeight, "DF");
 
     const letter = card.letters[c];
     const textW = doc.getTextWidth(letter);
-    doc.text(letter, cx + (cellWidth - textW) / 2, y + cellHeight * 0.7);
+    doc.text(
+      letter,
+      cx + (cellWidth - textW) / 2,
+      gridStartY + cellHeight * 0.7,
+    );
   }
 
-  // Grid & Numbers
-  doc.setFontSize(width / 6.5);
+  // Numbers Grid
+  doc.setFontSize(cellWidth * 0.5);
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
       const cx = x + c * cellWidth;
-      const cy = y + (r + 1) * cellHeight;
+      const cy = gridStartY + (r + 1) * cellHeight;
       doc.rect(cx, cy, cellWidth, cellHeight);
 
       const cell = card.grid[r][c];
       if (cell.isFree) {
-        doc.setFontSize(width / 12);
+        doc.setFontSize(cellWidth * 0.2);
         const text = "FREE";
         const textW = doc.getTextWidth(text);
         doc.text(text, cx + (cellWidth - textW) / 2, cy + cellHeight * 0.65);
-        doc.setFontSize(width / 6.5);
+        doc.setFontSize(cellWidth * 0.5);
       } else {
         const text = String(cell.value);
         const textW = doc.getTextWidth(text);

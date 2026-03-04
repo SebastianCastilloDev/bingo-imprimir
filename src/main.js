@@ -12,8 +12,12 @@ function render() {
   const app = document.querySelector("#app");
   app.innerHTML = `
     <div class="container">
-      <header>
-        <h1>Bingo Generator</h1>
+      <header class="app-header">
+        <div class="brand-container">
+          <img src="/logo-silvia.jpeg" alt="Logo Silvia" class="header-logo">
+          <h1 class="brand-title">BINGO SOLIDARIO</h1>
+          <img src="/qr.png" alt="QR Code" class="header-qr">
+        </div>
         <p class="subtitle">Generación profesional de cartones</p>
       </header>
       
